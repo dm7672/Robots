@@ -2,17 +2,13 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Locale;
 
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 import log.Logger;
 
@@ -36,7 +32,7 @@ public class MainApplicationFrame extends JFrame
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        
+        localizeJOptionPane();
         
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
@@ -135,8 +131,14 @@ public class MainApplicationFrame extends JFrame
             testMenu.add(addLogMessageItem);
         }
 
+        JButton quitMenuButton = new JButton("Выйти");
+        quitMenuButton.setMnemonic(KeyEvent.VK_Q);
+        quitMenuButton.addActionListener(new exitApp());
+
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
+        menuBar.add(quitMenuButton);
+
         return menuBar;
     }
     
@@ -152,5 +154,24 @@ public class MainApplicationFrame extends JFrame
         {
             // just ignore
         }
+    }
+
+    static class exitApp implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            int result = JOptionPane.showConfirmDialog(null,
+                    "Выйти из приложения?",
+                    "Подтверждение выхода",
+                    JOptionPane.YES_NO_OPTION);
+            if(result == JOptionPane.YES_OPTION){
+                System.exit(0);
+            }
+        }
+    }
+
+    private void localizeJOptionPane(){
+        UIManager.put("OptionPane.yesButtonText"   , "Да"    );
+        UIManager.put("OptionPane.noButtonText"    , "Нет"   );
     }
 }
