@@ -87,13 +87,7 @@ public class MainMenu {
     {
         public void actionPerformed(ActionEvent e)
         {
-            int result = JOptionPane.showConfirmDialog(null,
-                    "Выйти из приложения?",
-                    "Подтверждение выхода",
-                    JOptionPane.YES_NO_OPTION);
-            if(result == JOptionPane.YES_OPTION){
-                System.exit(0);
-            }
+            MainApplicationFrame.confirmAndExit();
         }
     }
 }

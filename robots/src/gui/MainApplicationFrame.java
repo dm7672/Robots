@@ -2,10 +2,7 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.Locale;
 
 import javax.swing.*;
@@ -33,8 +30,14 @@ public class MainApplicationFrame extends JFrame
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        localizeJOptionPane();
-        
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                confirmAndExit();
+            }
+        });
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
@@ -63,8 +66,18 @@ public class MainApplicationFrame extends JFrame
         frame.setVisible(true);
     }
 
-    private void localizeJOptionPane(){
-        UIManager.put("OptionPane.yesButtonText"   , "Да"    );
-        UIManager.put("OptionPane.noButtonText"    , "Нет"   );
+
+    public static void confirmAndExit() {
+        String message = "Выйти из приложения?";
+        String title = "Подтверждение выхода";
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                message,
+                title,
+                JOptionPane.YES_NO_OPTION);
+
+        if (result == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }
 }
