@@ -3,9 +3,8 @@ package gui;
 import log.Logger;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
+import java.util.function.Supplier;
 
 
 public class MainMenu {
@@ -13,66 +12,60 @@ public class MainMenu {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createLookAndFeelMenu(owner));
         menuBar.add(createTestMenu());
-        menuBar.add(createExitButton());
+        menuBar.add(createExitButton(owner));
         return menuBar;
     }
 
-
-    private static JMenu createLookAndFeelMenu(JFrame owner){
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
-        lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
-        lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
-
-        {
-            JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
-            systemLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(owner, UIManager.getSystemLookAndFeelClassName());
-                owner.invalidate();
-            });
-            lookAndFeelMenu.add(systemLookAndFeel);
-        }
-
-        {
-            JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
-            crossplatformLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(owner, UIManager.getCrossPlatformLookAndFeelClassName());
-                owner.invalidate();
-            });
-            lookAndFeelMenu.add(crossplatformLookAndFeel);
-        }
-        return lookAndFeelMenu;
+    private static JMenu createLookAndFeelMenu(JFrame owner) {
+        JMenu menu = createMenu("menu.view", KeyEvent.VK_V);
+        addLookAndFeelOption(menu, "menu.view.system", owner, () -> UIManager.getSystemLookAndFeelClassName());
+        addLookAndFeelOption(menu, "menu.view.cross", owner, () -> UIManager.getCrossPlatformLookAndFeelClassName());
+        return menu;
     }
 
     private static JMenu createTestMenu() {
-        JMenu testMenu = new JMenu("Тесты");
-        testMenu.setMnemonic(KeyEvent.VK_T);
-        testMenu.getAccessibleContext().setAccessibleDescription(
-                "Тестовые команды");
+        JMenu menu = createMenu("menu.tests", KeyEvent.VK_T);
+        JMenuItem addLogMessageItem = createMenuItem("menu.tests.addlog", KeyEvent.VK_S,
+                e -> Logger.debug("Новая строка"));
 
-        {
-            JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
-            addLogMessageItem.addActionListener((event) -> {
-                Logger.debug("Новая строка");
-            });
-            testMenu.add(addLogMessageItem);
-        }
-
-        return testMenu;
+        menu.add(addLogMessageItem);
+        return menu;
     }
 
-    private static JButton createExitButton(){
-        JButton quitMenuButton = new JButton("Выйти");
-        quitMenuButton.setMnemonic(KeyEvent.VK_Q);
-        quitMenuButton.addActionListener(new exitApp());
-
-        return quitMenuButton;
+    private static JButton createExitButton(JFrame owner) {
+        JButton btn = new JButton(Localizer.getString("button.exit"));
+        btn.setMnemonic(KeyEvent.VK_Q);
+        btn.addActionListener(e -> MainApplicationFrame.confirmAndExit(owner));
+        return btn;
     }
 
-    private static void setLookAndFeel(JFrame owner, String className)
-    {
-        try
-        {
+    private static JMenu createMenu(String textKey, int mnemonic) {
+        String text = Localizer.getString(textKey);
+        JMenu menu = new JMenu(text);
+        menu.setMnemonic(mnemonic);
+        menu.getAccessibleContext().setAccessibleDescription(text);
+        return menu;
+    }
+
+    private static JMenuItem createMenuItem(String textKey, int mnemonic, ActionListener action) {
+        String text = Localizer.getString(textKey);
+        JMenuItem item = new JMenuItem(text, mnemonic);
+        item.addActionListener(action);
+        return item;
+    }
+
+    private static void addLookAndFeelOption(JMenu menu, String labelKey, JFrame owner, Supplier<String> lafSupplier) {
+        JMenuItem item = createMenuItem(labelKey, KeyEvent.VK_S, e -> {
+            String lafClass = lafSupplier.get();
+            setLookAndFeel(owner, lafClass);
+            owner.setJMenuBar(createMenuBar(owner));
+            owner.invalidate();
+        });
+        menu.add(item);
+    }
+
+    private static void setLookAndFeel(JFrame owner, String className) {
+        try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(owner);
         }
@@ -80,14 +73,6 @@ public class MainMenu {
                | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
             // just ignore
-        }
-    }
-
-    static class exitApp implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            MainApplicationFrame.confirmAndExit();
         }
     }
 }
